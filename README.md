@@ -132,8 +132,8 @@ Licensed under Creative Commons BY-NC-SA 4.0:
 
 Developed by **Rushab Upadhya**
 
-* Email: [your.email@example.com](mailto:rushab181@gmail.com)
-* LinkedIn: [https://linkedin.com/in/your-profile](https://linkedin.com/in/rushab-upadhya)
+* Email:(mailto:rushab181@gmail.com)
+* LinkedIn:(https://linkedin.com/in/rushab-upadhya)
 
 **Special thanks to:**
 

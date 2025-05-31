@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Interview System</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .logout-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 10px;
+        }
+
+        .logout-btn form button {
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .logout-btn form button:hover {
+            background: #e60000;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: url('https://creative-designs.ca/wp-content/uploads/2015/08/Website-Design-Background.jpg') no-repeat center center/cover;
+            color: rgb(246, 240, 240);
+            background-attachment: fixed;
+            text-align: center;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 3em;
+            text-shadow: 0 0 10px rgb(16, 15, 15);
+        }
+
+        form {
+            background: rgba(15, 14, 14, 0.2);
+            border-radius: 12px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0px 0px 25px rgba(0, 0, 0, 0.4);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        input[type="file"], button {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            margin: 10px;
+            font-size: 1.1em;
+        }
+
+        button {
+            background: linear-gradient(45deg, #e21f097f, #de9c20b0);
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: linear-gradient(45deg, #4adeffa5, #ff2e853c);
+        }
+    </style>
+</head>
+<body>
+    <div class="logout-btn">
+        <form action="/logout" method="GET">
+            <button type="submit">Log out</button>
+        </form>
+    </div>
+
+    <h1>AI POWERED RESUME BASED INTERVIEW SYSTEM</h1>
+
+    <form id="resumeForm" action="/upload_resume" method="POST" enctype="multipart/form-data">
+        <input type="file" id="resume" name="resume" required>
+        <button type="submit">Generate Questions</button>
+    </form>
+
+    <button id="atsCheckBtn">Check ATS Score</button>
+
+    <!-- ATS Modal -->
+    <div id="atsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:white; color:black; padding:30px; border-radius:15px; max-width:600px; text-align:center;">
+            <h2>Resume Score: <span id="atsScore">0</span>/100</h2>
+            <h3 style="margin-top: 10px;">ATS Feedback:</h3>
+            <p id="atsFeedback" style="font-size: 1.1em; margin: 20px 0;"></p>
+            <button onclick="closeModal()" style="padding:10px 20px; font-size:16px; border:none; border-radius:5px; background-color:#007bff; color:white; cursor:pointer;">OK</button>
+        </div>
+    </div>
+
+    <script>
+        function showATSModal(score, feedback) {
+            document.getElementById("atsScore").textContent = score;
+            document.getElementById("atsFeedback").textContent = feedback;
+            document.getElementById("atsModal").style.display = "flex";
+        }
+
+        function closeModal() {
+            document.getElementById("atsModal").style.display = "none";
+        }
+
+        $("#atsCheckBtn").click(function () {
+            const fileInput = $("#resume")[0];
+            if (fileInput.files.length === 0) {
+                alert("Please upload a resume first.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("resume", fileInput.files[0]);
+
+            $.ajax({
+                url: "/check_ats",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    showATSModal(response.score, response.feedback);
+                },
+                error: function () {
+                    alert("Failed to evaluate resume. Try again.");
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

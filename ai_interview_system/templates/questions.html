@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Generated Interview Questions</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .logout-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 10px;
+        }
+        
+        .logout-btn form button {
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .logout-btn form button:hover {
+            background: #e60000;
+        }
+        
+        body {
+            background-image: url('https://wallpaperaccess.com/full/4230797.jpg');
+            background-size: cover;
+            font-family: 'Poppins', sans-serif;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        .question-box {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px auto;
+            width: 90%;
+            max-width: 900px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+
+        button {
+            background: linear-gradient(45deg, #007bff, #00d4ff);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 1em;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: linear-gradient(45deg, #00d4ff, #007bff);
+        }
+    </style>
+</head>
+<body>
+    <div class="logout-btn">
+        <form action="/logout" method="GET">
+            <button type="submit">Log out</button>
+        </form>
+    </div>
+    
+    <h1>Generated Interview Questions</h1>
+
+    <div id="questionsContainer">
+        {% if questions %}
+        {% for index, question in questions %}
+        <div class="question-box">
+            <p><strong>Question {{ index }}:</strong> {{ question }}</p>
+            <button onclick="startRecording({{ index }})">🎤 Start Recording</button>
+            <p id="answer{{ index }}">Your answer will appear here...</p>
+            <button onclick="evaluateAnswer({{ index }})">Evaluate Answer</button>
+            <p id="evaluation{{ index }}"></p>
+        </div>
+        {% endfor %}
+        {% else %}
+            <p>No questions generated. Please try again.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function startRecording(index) {
+            let recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = "en-US";
+            recognition.start();
+
+            recognition.onresult = function(event) {
+                let transcript = event.results[0][0].transcript;
+                document.getElementById(`answer${index}`).innerText = transcript;
+            };
+
+            recognition.onerror = function(event) {
+                document.getElementById(`answer${index}`).innerText = "Error in speech recognition.";
+            };
+        }
+
+        function evaluateAnswer(index) {
+            let answer = $("#answer" + index).text();
+            if (answer === "Your answer will appear here...") {
+                alert("Please provide an answer first.");
+                return;
+            }
+
+            $.ajax({
+                url: "/evaluate_answer",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ answer: answer }),
+                success: function(response) {
+                    $("#evaluation" + index).text(response.evaluation);
+                },
+                error: function() {
+                    alert("Error evaluating answer.");
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+

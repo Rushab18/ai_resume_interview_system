@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1f1f1f;
+            color: #f0f0f0;
+            padding: 20px;
+            position: relative;
+        }
+
+        .top-right-download {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .top-right-download a button {
+            padding: 6px 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .top-right-download a button:hover {
+            background: #218838;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #444;
+        }
+
+        th {
+            background-color: #333;
+        }
+
+        tr:nth-child(even) {
+            background-color: #2a2a2a;
+        }
+
+        .charts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        canvas {
+            background-color: white;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .toggle-btn {
+            margin-top: 30px;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .toggle-btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 📥 Download Button -->
+    <div class="top-right-download">
+        <a href="/download_pdf" title="Download PDF">
+            <button>⬇️</button>
+        </a>
+    </div>
+
+    <h1>Admin Dashboard</h1>
+
+    <!-- 🧾 Data Table -->
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Interview Score</th>
+                <th>ATS Score</th>
+                <th>Resume Filename</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in data %}
+            <tr>
+                <td>{{ record.user }}</td>
+                <td>{{ record.interview_score }}/50</td>
+                <td>{{ record.ats_score if record.ats_score is not none else 'Pending' }}</td>
+                <td>{{ record.resume_filename }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- 📊 Show Analytics Button -->
+    <button class="toggle-btn" onclick="toggleAnalytics()">Show Analytics</button>
+
+    <!-- 📉 Hidden Charts Section -->
+    <div id="analyticsSection" style="display: none; margin-top: 30px;">
+        <div>
+            <h3>Average ATS Score: {{ average_ats }}</h3>
+            <h3>Highest Interview Score: {{ highest_interview }}</h3>
+        </div>
+
+        <div class="charts">
+            <div style="width: 350px; height: 250px;">
+                <canvas id="atsChart"></canvas>
+            </div>
+            <div style="width: 350px; height: 250px;">
+                <canvas id="interviewChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chartsRendered = false;
+
+        function toggleAnalytics() {
+            const section = document.getElementById("analyticsSection");
+            if (section.style.display === "none") {
+                section.style.display = "block";
+                if (!chartsRendered) {
+                    renderCharts();
+                    chartsRendered = true;
+                }
+            } else {
+                section.style.display = "none";
+            }
+        }
+
+        function renderCharts() {
+            const atsScores = {{ ats_scores | tojson }};
+            const interviewScores = {{ interview_scores | tojson }};
+
+            const atsBins = [0, 0, 0, 0, 0];
+            atsScores.forEach(score => {
+                if (score < 40) atsBins[0]++;
+                else if (score < 60) atsBins[1]++;
+                else if (score < 75) atsBins[2]++;
+                else if (score < 90) atsBins[3]++;
+                else atsBins[4]++;
+            });
+
+            new Chart(document.getElementById('atsChart'), {
+                type: 'pie',
+                data: {
+                    labels: ['<40', '40-59', '60-74', '75-89', '90-100'],
+                    datasets: [{
+                        data: atsBins,
+                        backgroundColor: ['#ff4d4d', '#ffa64d', '#ffd11a', '#85e085', '#00b33c']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'ATS Score Distribution'
+                        }
+                    }
+                }
+            });
+
+            new Chart(document.getElementById('interviewChart'), {
+                type: 'bar',
+                data: {
+                    labels: interviewScores.map((_, i) => 'Candidate ' + (i + 1)),
+                    datasets: [{
+                        label: 'Interview Score (/50)',
+                        data: interviewScores,
+                        backgroundColor: '#007bff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, max: 50 }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Interview Scores'
+                        }
+                    }
+                }
+          });
+        }
+    </script>
+</body>
+</html>

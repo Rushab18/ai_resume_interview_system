@@ -13,7 +13,7 @@ import io
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
-co = cohere.Client('bomaneaXAQvUaKFlPmEVAn0kCKLBMotBHA2C5p5q')
+co = cohere.Client('')
 
 USER_CREDENTIALS = {
     'admin': {
